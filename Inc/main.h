@@ -59,14 +59,18 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define MOTOR_AIN1_Pin GPIO_PIN_1
-#define MOTOR_AIN1_GPIO_Port GPIOA
+#define ENCODERA_Pin GPIO_PIN_0
+#define ENCODERA_GPIO_Port GPIOA
+#define ENCODERB_Pin GPIO_PIN_1
+#define ENCODERB_GPIO_Port GPIOA
 #define K210_UART_TX_Pin GPIO_PIN_2
 #define K210_UART_TX_GPIO_Port GPIOA
 #define K210_UART_RX_Pin GPIO_PIN_3
 #define K210_UART_RX_GPIO_Port GPIOA
 #define MOTOR_AIN2_Pin GPIO_PIN_10
 #define MOTOR_AIN2_GPIO_Port GPIOB
+#define MOTOR_AIN1_Pin GPIO_PIN_11
+#define MOTOR_AIN1_GPIO_Port GPIOB
 #define SERVO_TIM_CIRCLE_Pin GPIO_PIN_6
 #define SERVO_TIM_CIRCLE_GPIO_Port GPIOC
 #define SERVO_TIM_UP_Pin GPIO_PIN_7
@@ -75,8 +79,6 @@ void Error_Handler(void);
 #define DWN_GPIO_Port GPIOC
 #define SERVO_RUN_Pin GPIO_PIN_9
 #define SERVO_RUN_GPIO_Port GPIOC
-#define UP_Pin GPIO_PIN_8
-#define UP_GPIO_Port GPIOA
 #define ESP_TX_Pin GPIO_PIN_9
 #define ESP_TX_GPIO_Port GPIOA
 #define ESP_RX_Pin GPIO_PIN_10
@@ -85,6 +87,8 @@ void Error_Handler(void);
 #define LFT_GPIO_Port GPIOA
 #define RHT_Pin GPIO_PIN_10
 #define RHT_GPIO_Port GPIOC
+#define UP_Pin GPIO_PIN_11
+#define UP_GPIO_Port GPIOC
 #define MID_Pin GPIO_PIN_12
 #define MID_GPIO_Port GPIOC
 #define TFT_SCL_Pin GPIO_PIN_4

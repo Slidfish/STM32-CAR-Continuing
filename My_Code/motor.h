@@ -5,7 +5,7 @@
 #include "pid.h"
 
 #define RUN_HTIM         &htim2
-#define RUN_CHANNEL_A1   		TIM_CHANNEL_2
+#define RUN_CHANNEL_A1   		TIM_CHANNEL_4
 #define RUN_CHANNEL_A2   		TIM_CHANNEL_3
 
 #define MOTOR_PWM_MAX   		0.7*7200

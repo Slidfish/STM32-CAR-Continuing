@@ -22,19 +22,21 @@ Dialog DLL:      TCM.DLL V1.21.0.0
  
 <h2>Project:</h2>
 F:\MY_WORLD\Servo_try\MDK-ARM\Servo_try.uvprojx
-Project File Date:  09/12/2024
+Project File Date:  09/16/2024
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 4 (build 422)', folder: 'E:\KEILARM\ARM\ARMCC\Bin'
 Build target 'Servo_try'
-compiling esp01s.c...
-..\My_Code\esp01s.c(26): warning:  #177-D: variable "pStr"  was declared but never referenced
-      unsigned char *pStr = UsartPrintfBuf;  
-..\My_Code\esp01s.c: 1 warning, 0 errors
+compiling main.c...
+../My_Code/encoderM.h(44): warning:  #1295-D: Deprecated declaration encoder_getVelocity - give arg types
+  void encoder_getVelocity();
+../Src/main.c(67): warning:  #177-D: variable "encoder_ok"  was declared but never referenced
+  static u8 encoder_ok=0;
+../Src/main.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=14580 RO-data=8476 RW-data=372 ZI-data=8164  
+Program Size: Code=15208 RO-data=8212 RW-data=496 ZI-data=8360  
 FromELF: creating hex file...
-"Servo_try\Servo_try.axf" - 0 Error(s), 1 Warning(s).
+"Servo_try\Servo_try.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -52,7 +54,7 @@ Package Vendor: ARM
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.0.0
-Build Time Elapsed:  00:00:06
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>

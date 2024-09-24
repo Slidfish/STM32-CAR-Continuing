@@ -39,6 +39,7 @@ void set_servo_pwm(uint32_t Channel,uint32_t *pwm);
 void pidTurn_init(void);
 int pidTurn_getDutyX(float devx);
 int pidTurn_getDutyY(float devy);
+int pidTurn_getDutyR(float devr);
 
 
 #endif /* CODE_BALANCE_SERVO_H_ */

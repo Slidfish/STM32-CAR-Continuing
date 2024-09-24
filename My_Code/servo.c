@@ -2,11 +2,17 @@
 #include "debug.h"
 PIDcal_st Turn_PIDcal_Up;
 PIDcal_st Turn_PIDcal_Circle;
+PIDcal_st Turn_PIDcal_Run;
+
 PIDparam_st Turn_Up_PIDparam;
 PIDparam_st Turn_Circle_PIDparam;
+PIDparam_st Turn_Run_PIDparam;
+
 
 float tar_turnx = 0;
 float tar_turny = 0;
+float tar_turnr = 0;
+
 
 uint32_t servo_up_pwm = SERVO_UP_MID;
 uint32_t servo_circle_pwm = SERVO_CIRCLE_MID;
@@ -69,6 +75,10 @@ void pidTurn_init(){
 	  Turn_Circle_PIDparam.kp = 0;
     Turn_Circle_PIDparam.ki = 0;
     Turn_Circle_PIDparam.kd = 0;
+	
+		Turn_Run_PIDparam.kp = 0;
+    Turn_Run_PIDparam.ki = 0;
+    Turn_Run_PIDparam.kd = 0;
 
 }
 float PID_Location2(PIDcal_st *sptr, PIDparam_st PIDparam, float NowData, float Target)
@@ -90,4 +100,8 @@ int pidTurn_getDutyX(float devx){
 int pidTurn_getDutyY(float devy){
     tar_turny = -1 * PID_Location2(&Turn_PIDcal_Up, Turn_Up_PIDparam,devy, IMAGE_Y_CENTRAL);
     return tar_turny;
+}
+int pidTurn_getDutyR(float devr){
+    tar_turnr = -1 * PID_Location2(&Turn_PIDcal_Run, Turn_Run_PIDparam,devr, 0);
+    return tar_turnr;
 }

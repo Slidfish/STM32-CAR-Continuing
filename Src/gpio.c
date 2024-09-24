@@ -54,26 +54,33 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, TFT_SCL_Pin|TFT_SDA_Pin|TFT_RES_Pin|TFT_DC_Pin
                           |TFT_CS_Pin|TFT_BLK_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PCPin PCPin PCPin */
-  GPIO_InitStruct.Pin = DWN_Pin|RHT_Pin|MID_Pin;
+  /*Configure GPIO pins : PCPin PCPin PCPin PCPin */
+  GPIO_InitStruct.Pin = DWN_Pin|RHT_Pin|UP_Pin|MID_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PAPin PAPin */
-  GPIO_InitStruct.Pin = UP_Pin|LFT_Pin;
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = LFT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(LFT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin
-                           PBPin PBPin */
-  GPIO_InitStruct.Pin = TFT_SCL_Pin|TFT_SDA_Pin|TFT_RES_Pin|TFT_DC_Pin
-                          |TFT_CS_Pin|TFT_BLK_Pin;
+                           PBPin */
+  GPIO_InitStruct.Pin = TFT_SCL_Pin|TFT_SDA_Pin|TFT_DC_Pin|TFT_CS_Pin
+                          |TFT_BLK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = TFT_RES_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(TFT_RES_GPIO_Port, &GPIO_InitStruct);
 
 }
 

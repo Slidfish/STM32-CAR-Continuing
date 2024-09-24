@@ -34,6 +34,7 @@
 #include "servo.h"
 #include "eeprom.h"
 #include "motor.h"
+#include "encoderM.h"
 
 #define         MenuNum(Table)      sizeof(Table)/sizeof(Table[0])
 volatile uint8_t ExitMenu_flag = 0;//退出菜单的标志位
@@ -67,23 +68,34 @@ void readFlash(uint8_t n);
 extern uint32_t servo_up_pwm;
 extern uint32_t servo_circle_pwm;
 extern uint32_t servo_run_pwm;
-extern uint32_t Cx,Cy,Cz;
-uint32_t *EEPROM_DATA[] =
-{
-	(uint32_t*)&servo_up_pwm,
-	(uint32_t*)&servo_circle_pwm,
-	(uint32_t*)&servo_run_pwm,
-};
-
-/****************************************EEPROM_DATA*****************************************/
+extern int32_t Cx,Cy,Cz;
+extern VelocityData velo;
      
 uint32_t Turn_Up_PIDparam_kp= 1;
 uint32_t Turn_Up_PIDparam_kd = 0;
 uint32_t Turn_Circle_PIDparam_kp= 1;
 uint32_t Turn_Circle_PIDparam_kd = 0;
+uint32_t Turn_Run_PIDparam_kp= 1;
+uint32_t Turn_Run_PIDparam_kd = 0;
 
+uint32_t *EEPROM_DATA[] =
+{
+	(uint32_t*)&servo_up_pwm,
+	(uint32_t*)&servo_circle_pwm,
+	(uint32_t*)&servo_run_pwm,
+	(uint32_t*)&Turn_Up_PIDparam_kp,
+	(uint32_t*)&Turn_Up_PIDparam_kd,
+	(uint32_t*)&Turn_Circle_PIDparam_kp,
+	(uint32_t*)&Turn_Circle_PIDparam_kd,
+	(uint32_t*)&Turn_Run_PIDparam_kp,
+	(uint32_t*)&Turn_Run_PIDparam_kd,
+};
 
-uint32_t servo_ok=0;
+/****************************************EEPROM_DATA*****************************************/
+
+uint32_t servo_ok_1=0;
+uint32_t servo_ok_2=0;
+
 
 void SERVO_UP()
 {
@@ -108,22 +120,31 @@ void RECIEVE()
 
     while(keymsg.key!=KEY_L){
 				m_tft180_show_string(0,0,"begin to recieve ",BLACK,WHITE);
-				m_tft180_show_uint(0,16,Cx,3,BLACK,WHITE);
-				m_tft180_show_uint(0,32,Cy,3,BLACK,WHITE);
-				m_tft180_show_uint(0,48,Cz,3,BLACK,WHITE);
+				m_tft180_show_int(0,16,Cx,3,BLACK,WHITE);
+				m_tft180_show_int(0,32,Cy,3,BLACK,WHITE);
+				m_tft180_show_int(0,48,-200,3,BLACK,WHITE);
 
 			
 
     }
 }
 /****************************************Basic_Test菜单******************************************/
-MENU_TABLE TRACK[] =
+MENU_TABLE TRACK1[] =
 {
         {(uint8_t*)"kp_u", {.UINT32 =(uint32_t*)&Turn_Up_PIDparam_kp},Para_uint,{.ItemFunc = Func_Null}},
         {(uint8_t*)"kd_u", {.UINT32 =(uint32_t*)&Turn_Up_PIDparam_kd},Para_uint,{.ItemFunc = Func_Null}},
         {(uint8_t*)"kp_c", {.UINT32 =(uint32_t*)&Turn_Circle_PIDparam_kp},Para_uint,{.ItemFunc = Func_Null}},        
         {(uint8_t*)"kd_c", {.UINT32 =(uint32_t*)&Turn_Circle_PIDparam_kd},Para_uint,{.ItemFunc = Func_Null}}, 
-				{(uint8_t*)"servo_ok", {.UINT32 =(uint32_t*)&servo_ok},Para_uint,{.ItemFunc = Func_Null}}, 
+				{(uint8_t*)"servo_ok_1", {.UINT32 =(uint32_t*)&servo_ok_1},Para_uint,{.ItemFunc = Func_Null}}, 
+
+				
+};
+
+MENU_TABLE TRACK2[] =
+{
+        {(uint8_t*)"kp_r", {.UINT32 =(uint32_t*)&Turn_Run_PIDparam_kp},Para_uint,{.ItemFunc = Func_Null}},
+        {(uint8_t*)"kd_r", {.UINT32 =(uint32_t*)&Turn_Run_PIDparam_kd},Para_uint,{.ItemFunc = Func_Null}},
+				{(uint8_t*)"servo_ok_2", {.UINT32 =(uint32_t*)&servo_ok_2},Para_uint,{.ItemFunc = Func_Null}}, 
 
 				
 };
@@ -141,21 +162,28 @@ void MOTOR(){
     while (keymsg.key != KEY_L)
     {
         if(keymsg.key == KEY_U)
+				{
             set_motor_pwm(2000,0);
+				}
         else if(keymsg.key == KEY_D)
-            set_motor_pwm(0,2000);
-        
+        {    set_motor_pwm(0,2000);
+					
+        }
+		m_tft180_show_int(0,0,velo.enc[0]*10,4,BLACK,WHITE);
+
     }
     if(keymsg.key==KEY_L&&keymsg.status==KEY_DOWN) keymsg.status=KEY_UP;
     DISABLE_MOTOR;
     tft180_full(RGB565_WHITE);
 }
+
 MENU_TABLE Basic_Test[] =
 {
 				{(uint8_t *)"1.srv_text       ", {.SubMenu = SERVO_PRA},  Sub_Menus ,  {.SubMenuNum = MenuNum(SERVO_PRA)}},
 				{(uint8_t *)"2.Recieve       ", {.SubMenu = Table_Null},  Functions ,  {.ItemFunc = RECIEVE}},
-				{(uint8_t *)"3.track       ", {.SubMenu = TRACK},  Sub_Menus ,  {.SubMenuNum = MenuNum(TRACK)}},
-				{(uint8_t *)"4.motor       ", {.SubMenu = Table_Null},  Functions ,  {.ItemFunc = MOTOR}},
+				{(uint8_t *)"3.track1       ", {.SubMenu = TRACK1},  Sub_Menus ,  {.SubMenuNum = MenuNum(TRACK1)}},
+				{(uint8_t *)"4.track2       ", {.SubMenu = TRACK2},  Sub_Menus ,  {.SubMenuNum = MenuNum(TRACK2)}},
+				{(uint8_t *)"5.motor       ", {.SubMenu = Table_Null},  Functions ,  {.ItemFunc = MOTOR}},
 
 //        {(uint8_t *)"2.motor      ", {.SubMenu = Table_Null},  Functions ,   {.ItemFunc = MOTOR}},
 //        {(uint8_t *)"3.img      ", {.SubMenu = Table_Null},  Functions ,   {.ItemFunc = IMG}},

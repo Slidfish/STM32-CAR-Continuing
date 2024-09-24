@@ -39,3 +39,4 @@ servo_try\menu.o: ../Inc/tim.h
 servo_try\menu.o: ..\My_Code\pid.h
 servo_try\menu.o: ..\My_Code\eeprom.h
 servo_try\menu.o: ..\My_Code\motor.h
+servo_try\menu.o: ..\My_Code\encoderM.h

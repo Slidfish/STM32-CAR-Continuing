@@ -30,6 +30,7 @@
 "servo_try\eeprom.o"
 "servo_try\esp01s.o"
 "servo_try\debug.o"
+"servo_try\encoderm.o"
 --library_type=microlib --strict --scatter "Servo_try\Servo_try.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

@@ -42,3 +42,4 @@ servo_try\main.o: ../My_Code/motor.h
 servo_try\main.o: ../My_Code/lcd.h
 servo_try\main.o: ../My_Code/menu.h
 servo_try\main.o: ../My_Code/esp01s.h
+servo_try\main.o: ../My_Code/encoderM.h

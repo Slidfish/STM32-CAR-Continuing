@@ -619,25 +619,34 @@ u32 mypow(u8 m,u8 n)
                 sizey 字号
       返回值：  无
 ******************************************************************************/
-void LCD_ShowIntNum(u16 x,u16 y,u16 num,u8 len,u16 fc,u16 bc,u8 sizey)
-{         	
-	u8 t,temp;
-	u8 enshow=0;
-	u8 sizex=sizey/2;
-	for(t=0;t<len;t++)
-	{
-		temp=(num/mypow(10,len-t-1))%10;
-		if(enshow==0&&t<(len-1))
-		{
-			if(temp==0)
-			{
-				LCD_ShowChar(x+t*sizex,y,' ',fc,bc,sizey,0);
-				continue;
-			}else enshow=1; 
-		 	 
-		}
-	 	LCD_ShowChar(x+t*sizex,y,temp+48,fc,bc,sizey,0);
-	}
+void LCD_ShowIntNum(u16 x, u16 y, int num, u8 len, u16 fc, u16 bc, u8 sizey)  
+{         
+    u8 t, temp;  
+    u8 enshow = 0;  // 标志位，用于控制是否开始显示数字  
+    u8 sizex = sizey / 2;  // 字符宽度  
+    int number = num;  // 临时保存，用于处理负号  
+
+    // 检查是否为负数  
+    if (number < 0) {  
+        LCD_ShowChar(x, y, '-', fc, bc, sizey, 0);  // 显示负号  
+        x += sizex;  // 更新 x 坐标，负号占用一个字符宽度  
+        number = -number;  // 取绝对值  
+        len--;  // 位数减1，负号占用一个位置  
+    }  
+
+    for (t = 0; t < len; t++) {  
+        temp = (number / mypow(10, len - t - 1)) % 10;  // 提取当前位上的数字  
+        
+        if (enshow == 0 && t < (len - 1)) {  
+            if (temp == 0) {  
+                LCD_ShowChar(x + t * sizex, y, ' ', fc, bc, sizey, 0);  // 显示空格  
+                continue;  
+            } else {  
+                enshow = 1;  // 表示开始显示数字  
+            }  
+        }  
+        LCD_ShowChar(x + t * sizex, y, temp + 48, fc, bc, sizey, 0);  // 显示数字字符  
+    }  
 } 
 
 

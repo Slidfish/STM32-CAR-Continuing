@@ -32,7 +32,7 @@
 #include "lcd.h"
 #include "menu.h"
 #include "esp01s.h"
-
+#include "encoderM.h"
 
 
 
@@ -55,24 +55,32 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-/* USER CODE BEGIN PV */ 
+/* USER CODE BEGIN PV */
 #define DataSize 512
 
-uint32_t Cx=IMAGE_X_CENTRAL;
-uint32_t Cy=IMAGE_Y_CENTRAL;
-uint32_t Cz=0;     
-static u8 RxBuffer1[6] = {0};  
-static u8 RxCounter1 = 0;  
-extern uint16_t servo_ok;
+int32_t Cx=IMAGE_X_CENTRAL;
+int32_t Cy=IMAGE_Y_CENTRAL;
+int32_t Cz=0;     
+static uint16_t encoder_counter = 0;
+static int32_t RxBuffer1[6] = {0};  
+static u8 RxCounter1 = 0;
+static u8 encoder_ok=0;
+extern uint16_t servo_ok_1;
+extern uint16_t servo_ok_2;
 extern uint16_t servo_up_pwm;
 extern uint16_t servo_circle_pwm;
+extern uint16_t servo_run_pwm;
 extern uint32_t Turn_Up_PIDparam_kp;
 extern uint32_t Turn_Up_PIDparam_kd;
 extern uint32_t Turn_Circle_PIDparam_kp;
 extern uint32_t Turn_Circle_PIDparam_kd;
+extern uint32_t Turn_Run_PIDparam_kp;
+extern uint32_t Turn_Run_PIDparam_kd;
 extern PIDparam_st Turn_Up_PIDparam;
 extern PIDparam_st Turn_Circle_PIDparam;
+extern PIDparam_st Turn_Run_PIDparam;
 extern char RxData[DataSize];
+extern VelocityData velo;
 
 /* USER CODE END PV */
 
@@ -119,22 +127,24 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
-		//servo_init();
+		servo_init();
 		motor_init();
 		pidTurn_init();
-		HAL_TIM_Base_Start_IT(&htim2);
-		HAL_TIM_Base_Start_IT(&htim3);
+		HAL_TIM_Base_Start_IT(&htim2);//10ms
+		HAL_TIM_Base_Start_IT(&htim3);//20ms
 
 		HAL_UART_Receive_IT(&huart1, (uint8_t*)&RxData[DataSize], 1);  
-		HAL_UART_Receive_IT(&huart2, &RxBuffer1[RxCounter1], 1);  
-		ESP01S_Init();
+		HAL_UART_Receive_IT(&huart2, (uint8_t*)&RxBuffer1[RxCounter1], 1);  
+		//ESP01S_Init();
 
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	Encoder_Init();
 	LCD_Init();
 	LCD_Fill(0,0,LCD_W,LCD_H,WHITE);
 	MainMenu_Set();
@@ -142,6 +152,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
 
 
@@ -193,9 +204,28 @@ void SystemClock_Config(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	   if(htim->Instance==ENCODER_TIM.Instance)//编码器输入定时器溢出中断，用于防溢出                   
+    {      
+        if(COUNTERNUM < 10000) velo.overflowNum++;       //如果是向上溢出
+        else if(COUNTERNUM >= 10000) velo.overflowNum--; //如果是向下溢出
+        __HAL_TIM_SetCounter(&ENCODER_TIM, 10000);             //重新设定初始值
+    }
+
     if (htim == (&htim2))
     {
         key_IRQHandler();
+				if(encoder_counter++>10) 		//100ms即1s计算10次速度
+				{
+					encoder_counter=0;
+					encoder_getVelocity();
+					//velo.direct = __HAL_TIM_IS_TIM_COUNTING_DOWN(&ENCODER_TIM);//如果向上计数（正转），返回值为0，否则返回值为1
+					//encoder1.totalCount = COUNTERNUM + encoder1.overflowNum * RELOADVALUE;//一个周期内的总计数值等于目前计数值加上溢出的计数值
+					//encoder1.speed = (float)(encoder1.totalCount - encoder1.lastCount) / (4 * MOTOR_SPEED_RERATIO * PULSE_PRE_ROUND) * 10;//算得每秒多少转
+					//encoder1.speed = (float)(encoder1.totalCount - encoder1.lastCount) / (4 * MOTOR_SPEED_RERATIO * PULSE_PRE_ROUND) * 10 * LINE_SPEED_C//算得车轮线速度每秒多少毫米
+					//encoder1.lastCount = encoder1.totalCount; //记录这一次的计数值
+					
+				}
+				
     }
 		if (htim == (&htim3))
 		{
@@ -203,34 +233,48 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			Turn_Up_PIDparam.kd = Turn_Up_PIDparam_kd;
 			Turn_Circle_PIDparam.kp = Turn_Circle_PIDparam_kp;
 			Turn_Circle_PIDparam.kd = Turn_Circle_PIDparam_kd;
+			Turn_Run_PIDparam.kp = Turn_Run_PIDparam_kp;
+			Turn_Run_PIDparam.kd = Turn_Run_PIDparam_kd;
+			if(servo_ok_1){
+				if((Cx!=0)&&(Cy!=0)){
+					//printf("cxd:%d  %d\n",pidTurn_getDutyX(Cx-IMAGE_X_CENTRAL),Cx-IMAGE_X_CENTRAL);
 
-			if((Cx!=0)&&(Cy!=0)){
-				//printf("cxd:%d  %d\n",pidTurn_getDutyX(Cx-IMAGE_X_CENTRAL),Cx-IMAGE_X_CENTRAL);
-
-				if(pidTurn_getDutyX(Cx)>10)
-					servo_circle_pwm -=10;
-				else if(pidTurn_getDutyX(Cx)<-10)
-					servo_circle_pwm +=10;
-				else
-				  servo_circle_pwm -= pidTurn_getDutyX(Cx);
-			
-				if(pidTurn_getDutyY(Cy)>10)
-					servo_up_pwm+=10;
-				else if(pidTurn_getDutyY(Cy)<-10)
-					servo_up_pwm -=10;
-				else
-					servo_up_pwm+= pidTurn_getDutyY(Cy);
-			if(servo_ok)
-			{
-						set_servo_pwm(SERVO_UP_CHANNEL,(uint32_t*)&servo_up_pwm);
-						set_servo_pwm(SERVO_CIRCLE_CHANNEL,(uint32_t*)&servo_circle_pwm);
-
-			}
+					if(pidTurn_getDutyX(Cx)>10)
+						servo_circle_pwm -=10;
+					else if(pidTurn_getDutyX(Cx)<-10)
+						servo_circle_pwm +=10;
+					else
+						servo_circle_pwm -= pidTurn_getDutyX(Cx);
+				
+					if(pidTurn_getDutyY(Cy)>10)
+						servo_up_pwm+=10;
+					else if(pidTurn_getDutyY(Cy)<-10)
+						servo_up_pwm -=10;
+					else
+						servo_up_pwm+= pidTurn_getDutyY(Cy);
+				
+							set_servo_pwm(SERVO_UP_CHANNEL,(uint32_t*)&servo_up_pwm);
+							set_servo_pwm(SERVO_CIRCLE_CHANNEL,(uint32_t*)&servo_circle_pwm);
+				}	}
+			else if(servo_ok_2){
+					if(pidTurn_getDutyR(Cx)>10)
+						servo_run_pwm +=10;
+					else if(pidTurn_getDutyR(Cx)<-10)
+						servo_run_pwm -=10;
+					else
+						servo_run_pwm += pidTurn_getDutyR(Cx);
+					set_servo_pwm(SERVO_RUN_CHANNEL,(uint32_t*)&servo_run_pwm);
+				
 			}
 		}
-
+	
 }
-
+int8_t uint8_to_int8(uint8_t value) {  
+    if (value > 127) {  
+        return (int8_t)(value - 256);  // 转换大于 127 的值为负数  
+    }  
+    return (int8_t)value;  // 直接返回  
+} 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {  
     static u8 RxState = 0;  
 		if (huart == (&huart1)){
@@ -252,9 +296,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 					
             if (RxCounter1==6 && RxBuffer1[5] == 0x5B) {  
-                Cx = RxBuffer1[2];  
-                Cy = RxBuffer1[3];  
-                Cz = RxBuffer1[4];  
+                Cx = uint8_to_int8(RxBuffer1[2]);  
+                Cy = uint8_to_int8(RxBuffer1[3]);  
+                Cz = uint8_to_int8(RxBuffer1[4]);  
                 // 数据接收完成，可以处理数据  
 				
                 // 重置  
@@ -276,7 +320,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         }  
 
         // 继续接收下一个字节  
-        HAL_UART_Receive_IT(&huart2, &RxBuffer1[RxCounter1], 1);  
+        HAL_UART_Receive_IT(&huart2, (uint8_t*)&RxBuffer1[RxCounter1], 1);  
         RxCounter1++; // 增加计数  
 
     }  
